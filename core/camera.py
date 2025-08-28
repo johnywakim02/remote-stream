@@ -5,7 +5,31 @@ from utils.logger import setup_logger
 
 
 class Camera:
+    """
+    Captures video from a connected camera using OpenCV.
+
+    This class manages the initialization, live video capture, display,
+    and teardown of a video stream. Pressing 'q' in the video window stops the feed.
+
+    Attributes:
+        camera_index (int): Index of the camera to use (default is 0).
+        window_name (str): Title of the OpenCV display window.
+        cap (Optional[cv2.VideoCapture]): OpenCV video capture object or None.
+        is_running (bool): Indicates whether the camera is currently streaming.
+    
+    Methods:
+        start(): Initializes the camera and begins streaming.
+        run(): Continuously reads and displays frames until stopped.
+        stop(): Releases the camera and closes the display window.
+    """
+
     def __init__(self, camera_idx: int = 0, window_name: str = "Camera Stream") -> None:
+        """Initialize the Camera instance.
+
+        Args:
+            camera_idx (int, optional): Index of the camera device. Defaults to 0.
+            window_name (str, optional): Name of the OpenCV display window. Defaults to "Camera Stream".
+        """
         self.camera_idx: int = camera_idx
         self.window_name: str = window_name
         self.cap: Optional[cv2.VideoCapture] = None
@@ -13,6 +37,13 @@ class Camera:
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera.log")
     
     def start(self) -> None:
+        """Open the video capture device and start the video stream.
+
+        Calls `self.run()` to begin displaying the feed in a window.
+
+        Raises:
+            RuntimeError: if the camera cannot be opened
+        """
         # Open Camera
         self.cap = cv2.VideoCapture(self.camera_idx)
         if not self.cap.isOpened():
@@ -27,6 +58,11 @@ class Camera:
         self.run()
 
     def run(self) -> None:
+        """Display video frames in a loop until the user stops the stream.
+
+        Shows the video in a named OpenCV window. The loop continues until the
+        user presses the 'q' key. Each frame is read and displayed.
+        """
         # while process should be running
         while self.is_running:
             # Read a frame
@@ -47,6 +83,10 @@ class Camera:
 
 
     def stop(self) -> None:
+        """Stop the video stream and release resources.
+
+        Closes the OpenCV window and releases the video capture device.
+        """
         # signal that the camera process should stop running
         self.is_running = False
         # Release the cap
