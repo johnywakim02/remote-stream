@@ -1,9 +1,18 @@
 import os
 from core.camera import Camera
+from core.server import Server
 
-log_folder = "logs"
-if not os.path.exists(log_folder):
-    os.makedirs(log_folder)
+if __name__ == "__main__":
+    log_folder = "logs"
+    if not os.path.exists(log_folder):
+        os.makedirs(log_folder)
 
-cam = Camera()
-cam.start()
+    cam = Camera()
+    server = Server(cam)
+
+    try:
+        server.run()
+    except KeyboardInterrupt:
+        print("Shutting down gracefully...")
+    finally:
+        cam.stop()

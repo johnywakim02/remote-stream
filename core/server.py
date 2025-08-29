@@ -1,28 +1,25 @@
 from flask import Flask, Response
-import cv2
+from core.camera import Camera
 
-app = Flask(__name__)
-camera = cv2.VideoCapture(0)
+class Server:
+    def __init__(self, camera: Camera, host='0.0.0.0', port=5000):
+        self.app = Flask(__name__)
+        self.camera = camera
+        self.host = host
+        self.port = port
 
-def generate_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode(".jpg", frame)
-            frame_bytes = buffer.tobytes()
+        self.setup_routes()
 
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        
-@app.route('/')
-def index():
-    return '<h1>Remote Cam</h1><img src="/video_feed">'
+    def setup_routes(self):
+        @self.app.route('/')
+        def index():
+            return '<h1>Remote Cam</h1><img src="/video_feed">'
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+        @self.app.route('/video_feed')
+        def video_feed():
+            return Response(self.camera.generate_frames(),
+                            mimetype='multipart/x-mixed-replace; boundary=frame')
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port = 5000, debug=True)
+    def run(self, debug=True):
+        self.camera.start()
+        self.app.run(host=self.host, port=self.port, debug=debug)

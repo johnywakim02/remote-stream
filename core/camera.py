@@ -37,9 +37,7 @@ class Camera:
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera.log")
     
     def start(self) -> None:
-        """Open the video capture device and start the video stream.
-
-        Calls `self.run()` to begin displaying the feed in a window.
+        """Open the video capture device and sets up capturing frames properly
 
         Raises:
             RuntimeError: if the camera cannot be opened
@@ -54,8 +52,37 @@ class Camera:
         # Run the frame capture and display process till use interruption
         self.is_running = True
         self.logger.info("Camera started")
-        print("Press 'q' to quit...")
-        self.run()
+
+    def generate_frames(self):
+        """
+        Generator that yields JPEG-encoded video frames for MJPEG streaming.
+
+        Yields:
+            bytes: Multipart JPEG frame suitable for HTTP MJPEG streaming.
+        """
+        try:
+            if not self.is_running:
+                self.logger.warning("generate_frames() called, but camera is not running.")
+                return
+            while self.is_running:
+                # read frame
+                success, frame = self.cap.read()
+                if not success:
+                    self.logger.error("Failed to read frame")
+                    self.stop() 
+                # encode frame
+                ret, buffer = cv2.imencode(".jpg", frame)
+                if not ret:
+                    self.logger.error("Failed to encode frame.")
+                    continue
+                frame_bytes = buffer.tobytes()
+                # yield the frame
+                yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        except Exception as e:
+            self.logger.warning(f"An exception occurred during frame generation: {e}")
+            self.stop()
+
 
     def run(self) -> None:
         """Display video frames in a loop until the user stops the stream.
@@ -63,6 +90,7 @@ class Camera:
         Shows the video in a named OpenCV window. The loop continues until the
         user presses the 'q' key. Each frame is read and displayed.
         """
+        print("Press 'q' to quit...")
         # while process should be running
         while self.is_running:
             # Read a frame
@@ -92,10 +120,11 @@ class Camera:
         # Release the cap
         if self.cap:
             self.cap.release()
+            self.logger.info("Camera Stopped")
         # destroy all displayed opencv windows:
         cv2.destroyAllWindows()
-        self.logger.info("Camera Stopped")
 
 if __name__ == "__main__":
     cam = Camera()
     cam.start()
+    cam.run()
