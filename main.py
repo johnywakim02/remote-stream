@@ -11,7 +11,7 @@ if __name__ == "__main__":
     server = Server(cam)
 
     try:
-        server.run()
+        server.run(debug=False)
     except KeyboardInterrupt:
         print("Shutting down gracefully...")
     finally:
