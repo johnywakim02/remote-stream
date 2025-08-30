@@ -1,5 +1,6 @@
 from flask import Flask, request, Response, jsonify
 from core.camera import Camera
+from .server_auth import ServerAuth
 from utils.logger import setup_logger
 from dotenv import load_dotenv
 import os
@@ -24,9 +25,10 @@ class Server:
             host (str, optional): The host IP address. Defaults to '0.0.0.0'.
             port (int, optional): The port to run the Flask server on. Defaults to 5000.
         """
-        load_dotenv()  
-        self.stream_username = os.getenv("STREAM_USERNAME")
-        self.stream_password = os.getenv("STREAM_PASSWORD")
+        load_dotenv()
+        correct_username = os.getenv("STREAM_USERNAME")
+        correct_password = os.getenv("STREAM_PASSWORD")
+        self.auth = ServerAuth(correct_username=correct_username, correct_password=correct_password)
 
         self.logger = setup_logger(self.__class__.__name__, log_file= "logs/server.log")
 
@@ -37,26 +39,6 @@ class Server:
 
         self.setup_routes()
 
-    def check_auth(self, username: str, password: str) -> bool:
-        return username == self.stream_username and password == self.stream_password
-
-    def authenticate(self) -> Response:
-        return Response(
-            'Authentication required', 401,
-            {'WWW-Authenticate': 'Basic realm="Login Required"'}
-        )
-
-    def requires_auth(self, f):
-        from functools import wraps
-
-        @wraps(f)
-        def decorated(*args, **kwargs):
-            auth = request.authorization
-            if not auth or not self.check_auth(auth.username, auth.password):
-                return self.authenticate()
-            return f(*args, **kwargs)
-
-        return decorated
 
     def setup_routes(self):
         """
@@ -67,11 +49,12 @@ class Server:
             /video_feed: Endpoint serving MJPEG video stream.
         """
         @self.app.route('/')
+        @self.auth.requires_auth
         def index():
             return '<h1>Remote Cam</h1><img src="/video_feed">'
 
         @self.app.route('/video_feed')
-        @self.requires_auth
+        @self.auth.requires_auth
         def video_feed():
             return Response(self.camera.generate_frames(),
                             mimetype='multipart/x-mixed-replace; boundary=frame')

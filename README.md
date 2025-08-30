@@ -3,7 +3,16 @@
 This project is under construction.
 Details coming soon.
 
-## 1. environment setup
+## 0. Table of Content
+
+- [remote-stream](#remote-stream)
+  - [0. Table of Content](#0-table-of-content)
+  - [1. Environment Setup](#1-environment-setup)
+    - [1.a. Python Environement](#1a-python-environement)
+    - [1.b. Project-Level Environment Variables](#1b-project-level-environment-variables)
+  - [2. Launching](#2-launching)
+
+## 1. Environment Setup
 
 To use this project, you have to configure both the python environment and the project-level environment variables.
 
@@ -40,7 +49,7 @@ python -m venv venv
 3. Change the values from the example values given there to real values you would like to use.
    - You can choose the username and password that you like for the stream. When trying to access the stream from any device, you will have to enter these same username and password.
 
-## 3. Launching
+## 2. Launching
 
 > Local Run
 > 
