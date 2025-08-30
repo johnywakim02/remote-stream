@@ -30,3 +30,21 @@ python -m venv venv
     `pip-compile requirements.in`
     3. synchronize your environment with requirements.txt:
     `pip-sync requirements.txt`
+
+## 2. Launching
+
+> Local Run
+> 
+>     - To run locally, use:
+>       - `python main.py`
+
+<br>
+
+> Public Run
+>
+> If you'd like to try running on the public internet, use Pinggy to configure a free tunnel. Follow these steps
+> - Run Locally in a terminal
+> - Open a second terminal and run:
+>   - `ssh -p 443 -R0:127.0.0.1:5000 qr@free.pinggy.io`
+> - The first time you use pinggy: Enter "yes" to continue connecting. Enter blank password if prompted.
+Then later, only enter blank password when prompted
