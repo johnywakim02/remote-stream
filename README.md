@@ -5,7 +5,9 @@ Details coming soon.
 
 ## 1. environment setup
 
-To use this project.
+To use this project, you have to configure both the python environment and the project-level environment variables.
+
+### 1.a. Python Environement
 
 0. check your version of python and compare with the env_info.txt file.
    ideally, you could use pyenv to get the equivalent version of python and pip for this project
@@ -31,7 +33,14 @@ python -m venv venv
     3. synchronize your environment with requirements.txt:
     `pip-sync requirements.txt`
 
-## 2. Launching
+### 1.b. Project-Level Environment Variables
+
+1. Create a `.env` file if you do not have any
+2. Copy the content of `.env_example` file and paste it in `.env` file
+3. Change the values from the example values given there to real values you would like to use.
+   - You can choose the username and password that you like for the stream. When trying to access the stream from any device, you will have to enter these same username and password.
+
+## 3. Launching
 
 > Local Run
 > 
@@ -48,3 +57,5 @@ python -m venv venv
 >   - `ssh -p 443 -R0:127.0.0.1:5000 qr@free.pinggy.io`
 > - The first time you use pinggy: Enter "yes" to continue connecting. Enter blank password if prompted.
 Then later, only enter blank password when prompted
+>
+> IMP: Pingy Provides two URLs: one with TLS certificate (HTTPS) and another without TLS certificate (HTTP). Always use the HTTPS address to protect your password and data from being intercepted during transmission.

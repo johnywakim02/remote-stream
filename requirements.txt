@@ -41,6 +41,8 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
+python-dotenv==1.1.1
+    # via -r requirements.in
 tomli==2.2.1
     # via
     #   build

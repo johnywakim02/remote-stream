@@ -2,3 +2,4 @@ pip-tools
 numpy
 opencv-python
 flask
+python-dotenv
