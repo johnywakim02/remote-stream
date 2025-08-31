@@ -1,5 +1,5 @@
 import os
-from core.camera import Camera
+from core.camera import CameraManager
 from core.server import Server
 
 if __name__ == "__main__":
@@ -7,7 +7,8 @@ if __name__ == "__main__":
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    cam = Camera(camera_idx=1)
+    cam_manager = CameraManager(2)
+    cam = cam_manager.cameras[1]
     server = Server(cam)
 
     try:
