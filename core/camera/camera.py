@@ -125,6 +125,6 @@ class Camera:
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    cam = Camera()
+    cam = Camera(camera_idx=1)
     cam.start()
     cam.run()

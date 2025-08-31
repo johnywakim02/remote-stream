@@ -3,6 +3,10 @@
 This project is under construction.
 Details coming soon.
 
+<br>
+<br>
+<br>
+
 ## 0. Table of Content
 
 - [remote-stream](#remote-stream)
@@ -11,6 +15,10 @@ Details coming soon.
     - [1.a. Python Environement](#1a-python-environement)
     - [1.b. Project-Level Environment Variables](#1b-project-level-environment-variables)
   - [2. Launching](#2-launching)
+
+<br>
+<br>
+<br>
 
 ## 1. Environment Setup
 
@@ -47,14 +55,21 @@ python -m venv venv
 1. Create a `.env` file if you do not have any
 2. Copy the content of `.env_example` file and paste it in `.env` file
 3. Change the values from the example values given there to real values you would like to use.
-   - You can choose the username and password that you like for the stream. When trying to access the stream from any device, you will have to enter these same username and password.
+   - You can choose the username and password that you like for the stream. When trying to access the stream from any device, you will have to enter these same username and password. 
+
+
+<br>
+<br>
+<br>
 
 ## 2. Launching
 
+This program can run indefinitely on a private network. It can also be temporarily exposed to the public internet using Pinggy's free tunnel, for testing purposes. Better alternatives are currently being explored.
+
 > Local Run
 > 
->     - To run locally, use:
->       - `python main.py`
+> - To run locally, use:
+>   - `python main.py`
 
 <br>
 

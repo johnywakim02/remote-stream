@@ -7,7 +7,7 @@ if __name__ == "__main__":
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
 
-    cam = Camera()
+    cam = Camera(camera_idx=1)
     server = Server(cam)
 
     try:
