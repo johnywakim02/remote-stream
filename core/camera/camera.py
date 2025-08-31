@@ -121,8 +121,8 @@ class Camera:
         if self.cap:
             self.cap.release()
             self.logger.info("Camera Stopped")
-        # destroy all displayed opencv windows:
-        cv2.destroyAllWindows()
+        # destroy the opencv windows of this camera:
+        cv2.destroyWindow(self.window_name)
 
 if __name__ == "__main__":
     cam = Camera(camera_idx=1)

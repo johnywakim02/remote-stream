@@ -15,6 +15,10 @@ Details coming soon.
     - [1.a. Python Environement](#1a-python-environement)
     - [1.b. Project-Level Environment Variables](#1b-project-level-environment-variables)
   - [2. Launching](#2-launching)
+  - [3. Project Structure](#3-project-structure)
+    - [3.a. main.py](#3a-mainpy)
+    - [3.b. core folder](#3b-core-folder)
+    - [3.c. utils folder](#3c-utils-folder)
 
 <br>
 <br>
@@ -83,3 +87,31 @@ This program can run indefinitely on a private network. It can also be temporari
 Then later, only enter blank password when prompted
 >
 > IMP: Pingy Provides two URLs: one with TLS certificate (HTTPS) and another without TLS certificate (HTTP). Always use the HTTPS address to protect your password and data from being intercepted during transmission.
+
+
+<br>
+<br>
+<br>
+
+## 3. Project Structure
+
+This project has 3 main parts:
+- main.py file
+- core folder
+- utils folder
+
+### 3.a. main.py
+
+The main program file that one should run ideally. It serves as a singular entry point to access the functionalities of this project.
+
+### 3.b. core folder
+
+The core folder contains packages that provide the main functionalities of the project, such as the `camera` and `server` packages.
+
+It differs from the utils folder in that it groups central, essential functionalities rather than generic, reusable helper modules.
+
+### 3.c. utils folder
+
+It groups helper modules that can be used both in the core folder's packages and in main.py.
+
+These are useful for logging, retries, and other miscellaneous, convenient utilities.
