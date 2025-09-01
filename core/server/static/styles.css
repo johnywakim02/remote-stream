@@ -1,0 +1,38 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+}
+
+.cam-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.cam-box {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    width: 420px;
+}
+
+.cam-preview {
+    width: 400px;
+    height: 300px;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.cam-box p {
+    margin: 8px 0 0;
+    font-size: 14px;
+}

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Remote Cam</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Remote Camera Streams</h1>
+    <div class="cam-grid">
+        {% for idx in cameras %}
+        <div class="cam-box">
+            <a href="/video_feed/{{ idx }}" target="_blank">
+                <img src="/video_feed/{{ idx }}" class="cam-preview" alt="Camera {{ idx }}" />
+            </a>
+            <p>Camera {{ idx }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

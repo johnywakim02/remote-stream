@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, jsonify
+from flask import Flask, Response, jsonify, render_template
 from core.camera import CameraManager
 from .server_auth import ServerAuth
 from utils.logger import setup_logger
@@ -51,10 +51,9 @@ class Server:
         @self.app.route('/')
         @self.auth.requires_auth
         def index():
-            links = ""
-            for idx, _ in enumerate(self.camera_manager.cameras):
-                links += f'<div><a href="/video_feed/{idx}">Camera {idx}</a></div>'
-            return f"<h1>Remote Cam</h1>{links}"
+            cameras = list(range(len(self.camera_manager.cameras)))
+            return render_template('index.html', cameras=cameras)
+
 
         @self.app.route('/video_feed/<int:camera_id>')
         @self.auth.requires_auth
