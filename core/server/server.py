@@ -1,5 +1,5 @@
 from flask import Flask, request, Response, jsonify
-from core.camera import Camera
+from core.camera import CameraManager
 from .server_auth import ServerAuth
 from utils.logger import setup_logger
 from dotenv import load_dotenv
@@ -11,17 +11,17 @@ class Server:
 
     Attributes:
         app (Flask): The Flask application instance.
-        camera (Camera): The Camera instance providing video frames.
+        camera_manager (CameraManager): The CameraManager instance providrd cameras with can generate video frames.
         host (str): Host address to bind the server. Defaults to '0.0.0.0'.
         port (int): Port number for the server. Defaults to 5000.
     """
     
-    def __init__(self, camera: Camera, host='0.0.0.0', port=5000):
+    def __init__(self, camera_manager: CameraManager, host='0.0.0.0', port=5000):
         """
         Initializes the Server with a Camera instance and Flask app
 
         Args:
-            camera (Camera): The Camera instance to stream video from.
+            camera_manager (CameraManager): The CameraManager instance to access available cams and stream videos from.
             host (str, optional): The host IP address. Defaults to '0.0.0.0'.
             port (int, optional): The port to run the Flask server on. Defaults to 5000.
         """
@@ -33,7 +33,7 @@ class Server:
         self.logger = setup_logger(self.__class__.__name__, log_file= "logs/server.log")
 
         self.app = Flask(__name__)
-        self.camera = camera
+        self.camera_manager = camera_manager
         self.host = host
         self.port = port
 
@@ -51,13 +51,23 @@ class Server:
         @self.app.route('/')
         @self.auth.requires_auth
         def index():
-            return '<h1>Remote Cam</h1><img src="/video_feed">'
+            links = ""
+            for idx, _ in enumerate(self.camera_manager.cameras):
+                links += f'<div><a href="/video_feed/{idx}">Camera {idx}</a></div>'
+            return f"<h1>Remote Cam</h1>{links}"
 
-        @self.app.route('/video_feed')
+        @self.app.route('/video_feed/<int:camera_id>')
         @self.auth.requires_auth
-        def video_feed():
-            return Response(self.camera.generate_frames(),
-                            mimetype='multipart/x-mixed-replace; boundary=frame')
+        def video_feed(camera_id):
+            try:
+                camera = self.camera_manager.cameras[camera_id]
+            except IndexError:
+                return jsonify({"error": "Camera not found"}), 404
+
+            return Response(
+                camera.generate_frames(),
+                mimetype='multipart/x-mixed-replace; boundary=frame'
+            )
         
         @self.app.errorhandler(500)
         def internal_error(error):
@@ -67,12 +77,13 @@ class Server:
 
     def run(self, debug=True):
         """
-        Starts the camera and runs the Flask development server.
+        Starts all cameras from manager and runs the Flask development server.
 
         Args:
             debug (bool, optional): Whether to run Flask in debug mode. Defaults to True.
         """
         self.logger.info(f"Starting server on {self.host}:{self.port} with debug={debug}")
-        self.camera.start()
+        for cam in self.camera_manager.cameras:
+            cam.start()
         self.app.run(host=self.host, port=self.port, debug=debug)
 

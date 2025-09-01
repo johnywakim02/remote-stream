@@ -8,12 +8,9 @@ if __name__ == "__main__":
         os.makedirs(log_folder)
 
     cam_manager = CameraManager(2)
-    cam = cam_manager.cameras[1]
-    server = Server(cam)
+    server = Server(cam_manager)
 
     try:
         server.run(debug=False)
     except KeyboardInterrupt:
         print("Shutting down gracefully...")
-    finally:
-        cam.stop()
