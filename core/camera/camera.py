@@ -32,6 +32,7 @@ class Camera:
         """
         self.camera_idx: int = camera_idx
         self.window_name: str = window_name
+        self.window_opened: bool = False
         self.cap: Optional[cv2.VideoCapture] = None
         self.is_running : bool = False
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera.log")
@@ -104,6 +105,8 @@ class Camera:
 
             # show the frame that was read
             cv2.imshow(self.window_name, frame)
+            if not self.window_opened:
+                self.window_opened = True
 
             # allow for exit through q
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -122,7 +125,12 @@ class Camera:
             self.cap.release()
             self.logger.info("Camera Stopped")
         # destroy the opencv windows of this camera:
-        cv2.destroyWindow(self.window_name)
+        if self.window_opened:
+            try:
+                cv2.destroyWindow(self.window_name)
+            except cv2.error as e:
+                self.logger.warning(f"Could not destroy window '{self.window_name}': {e}")
+            self.window_opened = False
 
 if __name__ == "__main__":
     cam = Camera(camera_idx=1)

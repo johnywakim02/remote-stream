@@ -14,3 +14,5 @@ if __name__ == "__main__":
         server.run(debug=False)
     except KeyboardInterrupt:
         print("Shutting down gracefully...")
+    finally:
+        cam_manager.stop_all_cameras()

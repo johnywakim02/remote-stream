@@ -69,11 +69,18 @@ class CameraManager:
             cameras.append(Camera(cam_idx, f"Camera Stream {cam_idx}"))
         return cameras
 
+    def start_all_cameras(self):
+        for camera in self.cameras:
+            camera.start()
+
+    def stop_all_cameras(self):
+        for camera in self.cameras:
+            camera.stop()
+
     def run_all_cameras(self):
         self.logger.info("Running all Cameras")
         threads: list[threading.Thread] = []
         for camera in self.cameras:
-            camera.start() 
             t = threading.Thread(target=camera.run)
             t.start()
             threads.append(t)
@@ -88,4 +95,6 @@ class CameraManager:
 if __name__ == "__main__":
     nb_cameras = int(input("how many cameras would you like to use? "))
     cam_manager = CameraManager(nb_cameras)
+    cam_manager.start_all_cameras()
     cam_manager.run_all_cameras()
+    cam_manager.stop_all_cameras()
