@@ -19,6 +19,9 @@ Details coming soon.
     - [3.a. main.py](#3a-mainpy)
     - [3.b. core folder](#3b-core-folder)
     - [3.c. utils folder](#3c-utils-folder)
+- [Future Steps](#future-steps)
+  - [1. Near Future](#1-near-future)
+  - [2. Far Future](#2-far-future)
 
 <br>
 <br>
@@ -115,3 +118,16 @@ It differs from the utils folder in that it groups central, essential functional
 It groups helper modules that can be used both in the core folder's packages and in main.py.
 
 These are useful for logging, retries, and other miscellaneous, convenient utilities.
+
+
+# Future Steps
+
+## 1. Near Future
+
+- Saving Video images
+- Integrating WiFi cameras through RTSP or ONVIF 
+- Allow for streaming publicly without the use of temporary tunnels
+
+## 2. Far Future
+
+- Detect Objects and take a close-up of them

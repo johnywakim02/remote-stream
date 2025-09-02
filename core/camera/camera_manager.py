@@ -4,18 +4,25 @@ import logging
 from .camera import Camera
 from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
+from utils.file_manipulator import clear_folder
+import os
 
 MIN_TESTED_INDICES = 1
 MAX_TESTED_INDICES = 15
 
 class CameraManager:
-    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10):
+    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, save_folder = "saved_imgs", delete_prior_saves = True):
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera_manager.log")
 
         self._validate_inputs(nb_wanted_cameras, max_tested_indices)
     
         self.available_camera_indices: list[int] = self._detect_cameras(nb_wanted_cameras, max_tested_indices)
         self.cameras: list[Camera] = self._open_available_cameras()
+        self.delete_prior_saves = delete_prior_saves
+        self.save_folder = save_folder
+        if self.delete_prior_saves:
+            clear_folder(self.save_folder)
+        self.prep_img_saving()
 
     def _validate_inputs(self, nb_wanted_cameras: int, max_tested_indices: int) -> None:
         if not validate_bt_zero(nb_wanted_cameras):
@@ -91,6 +98,15 @@ class CameraManager:
 
         self.logger.info("All Cameras Stopped.")
     
+    def prep_img_saving(self):
+        if not os.path.exists(self.save_folder):
+            os.makedirs(self.save_folder)
+
+        for camera_idx in self.available_camera_indices:
+            subfolder_path = os.path.join(self.save_folder, f"camera {camera_idx}")
+            if not os.path.exists(subfolder_path):
+                os.makedirs(subfolder_path)
+
 
 if __name__ == "__main__":
     nb_cameras = int(input("how many cameras would you like to use? "))
