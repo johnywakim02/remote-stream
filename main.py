@@ -14,6 +14,7 @@ if __name__ == "__main__":
     server = Server(cam_manager)
 
     try:
+        cam_manager.save_imgs_periodically()
         server.run(debug=False)
     except KeyboardInterrupt:
         print("Shutting down gracefully...")

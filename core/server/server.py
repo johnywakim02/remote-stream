@@ -82,6 +82,5 @@ class Server:
             debug (bool, optional): Whether to run Flask in debug mode. Defaults to True.
         """
         self.logger.info(f"Starting server on {self.host}:{self.port} with debug={debug}")
-        self.camera_manager.start_all_cameras()
         self.app.run(host=self.host, port=self.port, debug=debug)
 

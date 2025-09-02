@@ -1,6 +1,7 @@
 import cv2
 import threading
 import logging
+import time
 from .camera import Camera
 from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
@@ -18,6 +19,7 @@ class CameraManager:
     
         self.available_camera_indices: list[int] = self._detect_cameras(nb_wanted_cameras, max_tested_indices)
         self.cameras: list[Camera] = self._open_available_cameras()
+        self.start_all_cameras()
         self.delete_prior_saves = delete_prior_saves
         self.save_folder = save_folder
         if self.delete_prior_saves:
@@ -85,6 +87,8 @@ class CameraManager:
             camera.stop()
 
     def run_all_cameras(self):
+        """Runs all cameras in different threads
+        """
         self.logger.info("Running all Cameras")
         threads: list[threading.Thread] = []
         for camera in self.cameras:
@@ -99,6 +103,8 @@ class CameraManager:
         self.logger.info("All Cameras Stopped.")
     
     def prep_img_saving(self):
+        """Creates the save folder and its subfolders if they do not exist
+        """
         if not os.path.exists(self.save_folder):
             os.makedirs(self.save_folder)
 
@@ -106,6 +112,19 @@ class CameraManager:
             subfolder_path = os.path.join(self.save_folder, f"camera {camera_idx}")
             if not os.path.exists(subfolder_path):
                 os.makedirs(subfolder_path)
+
+    def save_imgs_periodically(self, interval: int = 5) -> None:
+        def run_saving():
+            while True:
+                for idx, camera in enumerate(self.cameras):
+                    frame = camera.capture_frame()
+                    save_subfolder = os.path.join(self.save_folder, f"camera {idx}")
+                    if frame is not None:
+                        save_file = os.path.join(save_subfolder, f"{int(time.time())}.jpg")
+                        cv2.imwrite(save_file, frame)
+                time.sleep(interval)
+        t = threading.Thread(target=run_saving, daemon=True)
+        t.start()
 
 
 if __name__ == "__main__":

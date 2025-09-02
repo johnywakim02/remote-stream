@@ -1,3 +1,4 @@
+import numpy as np
 import cv2
 from typing import Optional
 import logging
@@ -84,6 +85,19 @@ class Camera:
             self.logger.warning(f"An exception occurred during frame generation: {e}")
             self.stop()
 
+    def capture_frame(self) -> np.ndarray | None:
+        """Captures and returns a single frame, or None
+
+        Returns:
+            np.ndarray | None: The captured frame or lack-there-of if failed to capture it
+        """
+
+        ret, frame = self.cap.read()
+        if ret:
+            return frame
+        else:
+            self.logger.error("Failed to capture frame")
+            return None
 
     def run(self) -> None:
         """Display video frames in a loop until the user stops the stream.
@@ -111,7 +125,6 @@ class Camera:
             # allow for exit through q
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.stop()
-
 
     def stop(self) -> None:
         """Stop the video stream and release resources.
