@@ -114,15 +114,31 @@ class CameraManager:
                 os.makedirs(subfolder_path)
 
     def save_imgs_periodically(self, interval: int = 5) -> None:
+        """
+        Starts a background thread that captures and saves images from all cameras periodically.
+
+        Images are saved every `interval` seconds into separate subfolders for each camera.
+        Each image filename is timestamped with the format `HH_MM_SS.jpg`, where:
+            - HH is the hour (00-23)
+            - MM is the minute (00-59)
+            - SS is the second (00-59)
+
+        Args:
+            interval (int): Number of seconds between each image capture. Defaults to 5 seconds.
+
+        The saving runs in a daemon thread, so it will not block the main program from exiting.
+        """
         def run_saving():
             while True:
                 for idx, camera in enumerate(self.cameras):
                     frame = camera.capture_frame()
                     save_subfolder = os.path.join(self.save_folder, f"camera {idx}")
                     if frame is not None:
-                        save_file = os.path.join(save_subfolder, f"{int(time.time())}.jpg")
+                        filename = time.strftime("%H_%M_%S.jpg")
+                        save_file = os.path.join(save_subfolder, filename)
                         cv2.imwrite(save_file, frame)
                 time.sleep(interval)
+        # set the thread as a daemon thread to allow the program to shut down when the main program to exit without blocking
         t = threading.Thread(target=run_saving, daemon=True)
         t.start()
 
