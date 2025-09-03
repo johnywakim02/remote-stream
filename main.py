@@ -14,6 +14,8 @@ if __name__ == "__main__":
     server = Server(cam_manager)
 
     try:
+        cam_manager.estimate_storage_per_hour_cam(0)
+        cam_manager.estimate_storage_per_hour_cam(1)
         cam_manager.save_imgs_periodically()
         server.run(debug=False)
     except KeyboardInterrupt:

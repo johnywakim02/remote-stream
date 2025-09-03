@@ -1,3 +1,4 @@
+import math
 import cv2
 import threading
 import logging
@@ -113,6 +114,38 @@ class CameraManager:
             if not os.path.exists(subfolder_path):
                 os.makedirs(subfolder_path)
 
+    def estimate_storage_per_hour_cam(self, camera_idx: int, interval: int = 5) -> None:
+        """Estimate the storage required by camera per hour
+
+        Args:
+            camera_idx (int): index of the camera to access
+            interval (int, optional): interval between 2 pictures taken. Defaults to 5.
+        """
+        camera = self.cameras[camera_idx]
+        frame = camera.capture_frame()
+        if frame is None:
+            self.logger.warning(f"Camera {camera_idx}: No frame captured. Skipping estimation.")
+            return 
+
+        # Save the image to disk
+        filename = "test_image.jpg"
+        cv2.imwrite(filename, frame)
+
+        # Get actual file size in bytes
+        file_size = os.path.getsize(filename)
+        file_size_mb = file_size / (1024 * 1024)
+
+        # estimate the number of images per hour
+        images_per_hour = math.ceil(3600 / interval)
+        # estimate hourly storage spent
+        mb_per_hour = file_size_mb * images_per_hour
+
+        print(f"Camera {camera_idx}:")
+        print(f"  -> Estimated image size: {file_size_mb:.2f} MB")
+        print(f"  -> Images per hour (@ every {interval}s): {images_per_hour}")
+        print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
+
+    
     def save_imgs_periodically(self, interval: int = 5) -> None:
         """
         Starts a background thread that captures and saves images from all cameras periodically.
