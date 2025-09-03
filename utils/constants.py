@@ -1,0 +1,2 @@
+BYTE_TO_MB = 1 / (1024 * 1024)
+HOUR_TO_SEC = 3600

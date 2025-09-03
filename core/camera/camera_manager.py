@@ -6,7 +6,8 @@ import time
 from .camera import Camera
 from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
-from utils.file_manipulator import clear_folder
+from utils.file_manipulator import clear_folder, get_file_size_on_disk
+from utils.constants import HOUR_TO_SEC
 import os
 
 MIN_TESTED_INDICES = 1
@@ -132,11 +133,10 @@ class CameraManager:
         cv2.imwrite(filename, frame)
 
         # Get actual file size in bytes
-        file_size = os.path.getsize(filename)
-        file_size_mb = file_size / (1024 * 1024)
+        file_size_mb = get_file_size_on_disk(filename)
 
         # estimate the number of images per hour
-        images_per_hour = math.ceil(3600 / interval)
+        images_per_hour = math.ceil(HOUR_TO_SEC / interval)
         # estimate hourly storage spent
         mb_per_hour = file_size_mb * images_per_hour
 

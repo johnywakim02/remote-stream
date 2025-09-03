@@ -2,8 +2,9 @@ import ctypes
 import math
 import os
 import shutil
+import platform
+from utils.constants import BYTE_TO_MB
 
-BYTE_TO_MB = 1 / (1024 * 1024)
 
 def clear_folder(folder_path):
     for entry in os.listdir(folder_path):
@@ -19,9 +20,28 @@ def clear_folder(folder_path):
         except Exception as e:
             print(f"Failed to delete {entry_path}. Reason: {e}") 
 
+import os
+
+def get_file_size_on_disk_posix(path: str) -> int:
+    """Gets the disk space occupied by a certain file (on a drive on LINUX or MAC)
+
+    Args:
+        path (str): the path to the file
+
+    Raises:
+        ValueError: if the path does not correspond to a file 
+        
+    Returns:
+        int: the disk space in MB
+    """
+    if not os.path.isfile(path):
+        raise ValueError(f"Not a file: {path}")
+    
+    stat_result = os.stat(path)
+    return stat_result.st_blocks * 512 * BYTE_TO_MB
 
 def get_file_size_on_disk_windows(path: str) -> int :
-    """Gets the disk space ocupied by a certain file
+    """Gets the disk space ocupied by a certain file (on a drive on a windows system)
 
     Args:
         path (str): the path to the file
@@ -77,3 +97,23 @@ def _get_allocation_unit_size_windows(path: str):
 
     # return the size of an allocation unit
     return sectors_per_alloc_unit.value * bytes_per_sector.value
+
+def get_file_size_on_disk(path: str) -> int:
+    """Cross-platform: returns size on disk for a file, accounting for actual disk usage.
+
+    Args:
+        path (str): the path to the file
+
+    Raises:
+        NotImplementedError: if the OS is not supported
+
+    Returns:
+        int: the size of the file in MB
+    """
+    system = platform.system()
+    if system == 'Windows':
+        return get_file_size_on_disk_windows(path)
+    elif system in ('Linux', 'Darwin'):  # Darwin = macOS
+        return get_file_size_on_disk_posix(path)
+    else:
+        raise NotImplementedError(f"Unsupported OS: {system}")
