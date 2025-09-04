@@ -179,7 +179,6 @@ These are useful for logging, retries, and other miscellaneous, convenient utili
 
 ## 1. Near Future
 
-- Calculating save space consummed by hour
 - Add folder for the year_month_day when taking images
 - Integrating WiFi cameras through RTSP or ONVIF 
 - Allow for streaming publicly without the use of temporary tunnels

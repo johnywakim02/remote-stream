@@ -8,6 +8,7 @@ from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
 from utils.file_manipulator import clear_folder, get_file_size_on_disk
 from utils.constants import HOUR_TO_SEC
+from utils.datetime import get_date
 import os
 
 MIN_TESTED_INDICES = 1
@@ -110,8 +111,10 @@ class CameraManager:
         if not os.path.exists(self.save_folder):
             os.makedirs(self.save_folder)
 
+        date = get_date()
+
         for camera_idx in self.available_camera_indices:
-            subfolder_path = os.path.join(self.save_folder, f"camera {camera_idx}")
+            subfolder_path = os.path.join(self.save_folder, f"{date}/camera {camera_idx}")
             if not os.path.exists(subfolder_path):
                 os.makedirs(subfolder_path)
 
@@ -145,7 +148,6 @@ class CameraManager:
         print(f"  -> Images per hour (@ every {interval}s): {images_per_hour}")
         print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
 
-    
     def save_imgs_periodically(self, interval: int = 5) -> None:
         """
         Starts a background thread that captures and saves images from all cameras periodically.
@@ -162,10 +164,11 @@ class CameraManager:
         The saving runs in a daemon thread, so it will not block the main program from exiting.
         """
         def run_saving():
+            date = get_date()
             while True:
                 for idx, camera in enumerate(self.cameras):
                     frame = camera.capture_frame()
-                    save_subfolder = os.path.join(self.save_folder, f"camera {idx}")
+                    save_subfolder = os.path.join(self.save_folder, f"{date}/camera {idx}")
                     if frame is not None:
                         filename = time.strftime("%H_%M_%S.jpg")
                         save_file = os.path.join(save_subfolder, filename)
@@ -179,6 +182,5 @@ class CameraManager:
 if __name__ == "__main__":
     nb_cameras = int(input("how many cameras would you like to use? "))
     cam_manager = CameraManager(nb_cameras)
-    cam_manager.start_all_cameras()
     cam_manager.run_all_cameras()
     cam_manager.stop_all_cameras()
