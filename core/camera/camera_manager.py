@@ -15,7 +15,7 @@ MIN_TESTED_INDICES = 1
 MAX_TESTED_INDICES = 15
 
 class CameraManager:
-    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, save_folder = "saved_imgs", delete_prior_saves = True):
+    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera_manager.log")
 
         self._validate_inputs(nb_wanted_cameras, max_tested_indices)
@@ -25,6 +25,7 @@ class CameraManager:
         self.start_all_cameras()
         self.delete_prior_saves = delete_prior_saves
         self.save_folder = save_folder
+        self.save_interval = save_interval
         if self.delete_prior_saves:
             clear_folder(self.save_folder)
         self.prep_img_saving()
@@ -118,12 +119,11 @@ class CameraManager:
             if not os.path.exists(subfolder_path):
                 os.makedirs(subfolder_path)
 
-    def estimate_storage_per_hour_cam(self, camera_idx: int, interval: int = 5) -> None:
+    def estimate_storage_per_hour_cam(self, camera_idx: int) -> None:
         """Estimate the storage required by camera per hour
 
         Args:
             camera_idx (int): index of the camera to access
-            interval (int, optional): interval between 2 pictures taken. Defaults to 5.
         """
         camera = self.cameras[camera_idx]
         frame = camera.capture_frame()
@@ -139,16 +139,21 @@ class CameraManager:
         file_size_mb = get_file_size_on_disk(filename)
 
         # estimate the number of images per hour
-        images_per_hour = math.ceil(HOUR_TO_SEC / interval)
+        images_per_hour = math.ceil(HOUR_TO_SEC / self.save_interval)
         # estimate hourly storage spent
         mb_per_hour = file_size_mb * images_per_hour
 
         print(f"Camera {camera_idx}:")
         print(f"  -> Estimated image size: {file_size_mb:.2f} MB")
-        print(f"  -> Images per hour (@ every {interval}s): {images_per_hour}")
+        print(f"  -> Images per hour (@ every {self.save_interval}s): {images_per_hour}")
         print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
 
-    def save_imgs_periodically(self, interval: int = 5) -> None:
+    def estimate_storage_per_hour(self) -> None:
+        for camera_idx in self.available_camera_indices:
+            self.estimate_storage_per_hour_cam(camera_idx)
+
+
+    def save_imgs_periodically(self) -> None:
         """
         Starts a background thread that captures and saves images from all cameras periodically.
 
@@ -157,9 +162,6 @@ class CameraManager:
             - HH is the hour (00-23)
             - MM is the minute (00-59)
             - SS is the second (00-59)
-
-        Args:
-            interval (int): Number of seconds between each image capture. Defaults to 5 seconds.
 
         The saving runs in a daemon thread, so it will not block the main program from exiting.
         """
@@ -173,7 +175,7 @@ class CameraManager:
                         filename = time.strftime("%H_%M_%S.jpg")
                         save_file = os.path.join(save_subfolder, filename)
                         cv2.imwrite(save_file, frame)
-                time.sleep(interval)
+                time.sleep(self.save_interval)
         # set the thread as a daemon thread to allow the program to shut down when the main program to exit without blocking
         t = threading.Thread(target=run_saving, daemon=True)
         t.start()
