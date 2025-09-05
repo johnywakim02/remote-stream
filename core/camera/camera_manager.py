@@ -15,7 +15,7 @@ MIN_TESTED_INDICES = 1
 MAX_TESTED_INDICES = 15
 
 class CameraManager:
-    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
+    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, vid_folder = "saved_vids", save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera_manager.log")
 
         self._validate_inputs(nb_wanted_cameras, max_tested_indices)
@@ -24,6 +24,7 @@ class CameraManager:
         self.cameras: list[Camera] = self._open_available_cameras()
         self.start_all_cameras()
         self.delete_prior_saves = delete_prior_saves
+        self.vid_folder = vid_folder
         self.save_folder = save_folder
         self.save_interval = save_interval
         if self.delete_prior_saves:
@@ -118,6 +119,9 @@ class CameraManager:
             subfolder_path = os.path.join(self.save_folder, f"{date}/camera {camera_idx}")
             if not os.path.exists(subfolder_path):
                 os.makedirs(subfolder_path)
+
+    def prep_vid_saving(self):
+
 
     def estimate_storage_per_hour_cam(self, camera_idx: int) -> None:
         """Estimate the storage required by camera per hour
