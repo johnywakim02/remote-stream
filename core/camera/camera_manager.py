@@ -7,7 +7,7 @@ from .camera import Camera
 from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
 from utils.file_manipulator import clear_folder, get_file_size_on_disk
-from utils.constants import HOUR_TO_SEC
+from utils.constants import HOUR_TO_SEC, BYTE_TO_MB
 from utils.datetime import get_date
 import os
 
@@ -15,7 +15,7 @@ MIN_TESTED_INDICES = 1
 MAX_TESTED_INDICES = 15
 
 class CameraManager:
-    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, vid_folder = "saved_vids", save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
+    def __init__(self, nb_wanted_cameras: int, max_tested_indices: int = 10, save_fps = 10, vid_folder = "saved_vids", save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
         self.logger: logging.Logger = setup_logger(self.__class__.__name__, log_file= "logs/camera_manager.log")
 
         self._validate_inputs(nb_wanted_cameras, max_tested_indices)
@@ -24,6 +24,7 @@ class CameraManager:
         self.cameras: list[Camera] = self._open_available_cameras()
         self.start_all_cameras()
         self.delete_prior_saves = delete_prior_saves
+        self.save_fps = save_fps
         self.vid_folder = vid_folder
         self.save_folder = save_folder
         self.save_interval = save_interval
@@ -121,7 +122,15 @@ class CameraManager:
                 os.makedirs(subfolder_path)
 
     def prep_vid_saving(self):
+        if not os.path.exists(self.vid_folder):
+            os.makedirs(self.vid_folder)
 
+        date = get_date()
+        
+        for camera_idx in self.available_camera_indices:
+            subfolder_path = os.path.join(self.vid_folder, f"{date}/camera {camera_idx}")
+            if not os.path.exists(subfolder_path):
+                os.makedirs(subfolder_path)
 
     def estimate_storage_per_hour_cam(self, camera_idx: int) -> None:
         """Estimate the storage required by camera per hour
@@ -152,10 +161,45 @@ class CameraManager:
         print(f"  -> Images per hour (@ every {self.save_interval}s): {images_per_hour}")
         print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
 
+        # Clean up test file
+        os.remove(filename)
+
     def estimate_storage_per_hour(self) -> None:
         for camera_idx in self.available_camera_indices:
             self.estimate_storage_per_hour_cam(camera_idx)
 
+    def estimate_vid_storage_per_hour_cam(self, camera_idx: int, estimation_duration_sec = 5) -> None:
+        camera = self.cameras[camera_idx]
+        frame = camera.capture_frame()
+        if frame is None:
+            self.logger.warning(f"Camera {camera_idx}: No frame captured. Skipping estimation.")
+            return 
+        
+        height, width = frame.shape[:2]
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')  
+        test_filename = f"test_cam_{camera_idx}.avi"
+        out = cv2.VideoWriter(test_filename, fourcc, self.save_fps, (width, height))
+
+        start_time = time.time()
+        while time.time() - start_time < estimation_duration_sec:
+            frame = camera.capture_frame()
+            if frame is not None:
+                out.write(frame)
+            time.sleep(1 / self.save_fps)
+
+        out.release()
+
+        # Get file size in MB
+        file_size_mb = os.path.getsize(test_filename) * BYTE_TO_MB
+
+        # Estimate per hour
+        estimated_hourly_mb = (file_size_mb / estimation_duration_sec) * HOUR_TO_SEC
+
+        # Clean up test file
+        os.remove(test_filename)
+
+        print(f"Camera {camera_idx}:")
+        print(f"  -> Estimated video size per hour: {estimated_hourly_mb:.2f} MB")
 
     def save_imgs_periodically(self) -> None:
         """
