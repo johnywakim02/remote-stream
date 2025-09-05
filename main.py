@@ -27,8 +27,7 @@ if __name__ == "__main__":
     try:
         if save_flag:
             cam_manager.estimate_storage_per_hour()
-            cam_manager.estimate_vid_storage_per_hour_cam(0)
-            cam_manager.estimate_vid_storage_per_hour_cam(1)
+            cam_manager.estimate_vid_storage_per_hour()
             cam_manager.save_imgs_periodically()
         server.run(debug=False)
     except KeyboardInterrupt:

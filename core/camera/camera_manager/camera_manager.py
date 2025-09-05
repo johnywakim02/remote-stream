@@ -3,7 +3,9 @@ import cv2
 import threading
 import logging
 import time
-from .camera import Camera
+
+from .camera_manager_recorder import CameraManagerRecorder
+from ..camera import Camera
 from utils.logger import setup_logger
 from utils.validators import validate_bt_zero, validate_between_inclusive
 from utils.file_manipulator import clear_folder, get_file_size_on_disk
@@ -23,14 +25,11 @@ class CameraManager:
         self.available_camera_indices: list[int] = self._detect_cameras(nb_wanted_cameras, max_tested_indices)
         self.cameras: list[Camera] = self._open_available_cameras()
         self.start_all_cameras()
-        self.delete_prior_saves = delete_prior_saves
-        self.save_fps = save_fps
-        self.vid_folder = vid_folder
-        self.save_folder = save_folder
-        self.save_interval = save_interval
-        if self.delete_prior_saves:
+        self.rec = CameraManagerRecorder(save_fps=save_fps, vid_folder=vid_folder, save_folder=save_folder, delete_prior_saves=delete_prior_saves, save_interval=save_interval)
+        if self.rec.delete_prior_saves:
             clear_folder(self.save_folder)
         self.prep_img_saving()
+        self.prep_vid_saving()
 
     def _validate_inputs(self, nb_wanted_cameras: int, max_tested_indices: int) -> None:
         if not validate_bt_zero(nb_wanted_cameras):
@@ -109,28 +108,10 @@ class CameraManager:
         self.logger.info("All Cameras Stopped.")
     
     def prep_img_saving(self):
-        """Creates the save folder and its subfolders if they do not exist
-        """
-        if not os.path.exists(self.save_folder):
-            os.makedirs(self.save_folder)
-
-        date = get_date()
-
-        for camera_idx in self.available_camera_indices:
-            subfolder_path = os.path.join(self.save_folder, f"{date}/camera {camera_idx}")
-            if not os.path.exists(subfolder_path):
-                os.makedirs(subfolder_path)
+        self.rec.prep_img_saving(self.available_camera_indices)
 
     def prep_vid_saving(self):
-        if not os.path.exists(self.vid_folder):
-            os.makedirs(self.vid_folder)
-
-        date = get_date()
-        
-        for camera_idx in self.available_camera_indices:
-            subfolder_path = os.path.join(self.vid_folder, f"{date}/camera {camera_idx}")
-            if not os.path.exists(subfolder_path):
-                os.makedirs(subfolder_path)
+        self.rec.prep_vid_saving(self.available_camera_indices)
 
     def estimate_storage_per_hour_cam(self, camera_idx: int) -> None:
         """Estimate the storage required by camera per hour
@@ -200,6 +181,10 @@ class CameraManager:
 
         print(f"Camera {camera_idx}:")
         print(f"  -> Estimated video size per hour: {estimated_hourly_mb:.2f} MB")
+
+    def estimate_vid_storage_per_hour(self, estimation_duration_sec = 5):
+        for camera_idx in self.available_camera_indices:
+            self.estimate_vid_storage_per_hour_cam(camera_idx, estimation_duration_sec)
 
     def save_imgs_periodically(self) -> None:
         """
