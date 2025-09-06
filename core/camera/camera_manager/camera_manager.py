@@ -213,6 +213,50 @@ class CameraManager:
         t = threading.Thread(target=run_saving, daemon=True)
         t.start()
 
+    def save_video_hourly(self) -> None:
+        """
+        Starts a background thread that records and saves hourly videos from all cameras.
+
+        Each video is saved into a subfolder for each camera, labeled by the date.
+        The filename format is `HH.mp4`, where HH is the hour (00–23).
+        If interrupted (e.g., Ctrl+C), the last partial video is saved.
+        """
+        def run_video_recording():
+            date = get_date()
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # or 'XVID' for .avi
+            fps = self.video_fps  # frames per second
+            frame_size = self.frame_size  # (width, height)
+
+            while True:
+                hour_start = time.localtime()
+                hour_str = time.strftime("%H", hour_start)
+                next_hour = time.time() + 3600  # target end time
+
+                writers = []
+                for idx, camera in enumerate(self.cameras):
+                    save_subfolder = os.path.join(self.save_folder, f"{date}/camera {idx}")
+                    os.makedirs(save_subfolder, exist_ok=True)
+                    video_path = os.path.join(save_subfolder, f"{hour_str}.mp4")
+                    writer = cv2.VideoWriter(video_path, fourcc, fps, frame_size)
+                    writers.append(writer)
+
+                try:
+                    while time.time() < next_hour:
+                        for idx, camera in enumerate(self.cameras):
+                            frame = camera.capture_frame()
+                            if frame is not None:
+                                writers[idx].write(frame)
+                        time.sleep(1 / fps)
+                except KeyboardInterrupt:
+                    print("Interrupted. Saving partial video...")
+                    break
+                finally:
+                    for writer in writers:
+                        writer.release()
+
+        t = threading.Thread(target=run_video_recording, daemon=True)
+        t.start()
+
 
 if __name__ == "__main__":
     nb_cameras = int(input("how many cameras would you like to use? "))
