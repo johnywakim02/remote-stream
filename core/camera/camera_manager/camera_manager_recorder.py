@@ -1,6 +1,7 @@
 import os
 
 from utils.datetime import get_date
+from utils.file_manipulator import clear_folder
 
 class CameraManagerRecorder:
     def __init__(self, save_fps = 10, vid_folder = "saved_vids", save_folder = "saved_imgs", delete_prior_saves = True, save_interval: int = 5):
@@ -9,6 +10,8 @@ class CameraManagerRecorder:
         self.vid_folder = vid_folder
         self.save_folder = save_folder
         self.save_interval = save_interval
+        if self.delete_prior_saves:
+            clear_folder(self.save_folder)
 
     def prep_img_saving(self, available_camera_indices):
         """Creates the save folder and its subfolders if they do not exist

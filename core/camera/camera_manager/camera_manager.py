@@ -26,8 +26,6 @@ class CameraManager:
         self.cameras: list[Camera] = self._open_available_cameras()
         self.start_all_cameras()
         self.rec = CameraManagerRecorder(save_fps=save_fps, vid_folder=vid_folder, save_folder=save_folder, delete_prior_saves=delete_prior_saves, save_interval=save_interval)
-        if self.rec.delete_prior_saves:
-            clear_folder(self.save_folder)
         self.prep_img_saving()
         self.prep_vid_saving()
 
@@ -133,13 +131,13 @@ class CameraManager:
         file_size_mb = get_file_size_on_disk(filename)
 
         # estimate the number of images per hour
-        images_per_hour = math.ceil(HOUR_TO_SEC / self.save_interval)
+        images_per_hour = math.ceil(HOUR_TO_SEC / self.rec.save_interval)
         # estimate hourly storage spent
         mb_per_hour = file_size_mb * images_per_hour
 
         print(f"Camera {camera_idx}:")
         print(f"  -> Estimated image size: {file_size_mb:.2f} MB")
-        print(f"  -> Images per hour (@ every {self.save_interval}s): {images_per_hour}")
+        print(f"  -> Images per hour (@ every {self.rec.save_interval}s): {images_per_hour}")
         print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
 
         # Clean up test file
@@ -159,14 +157,14 @@ class CameraManager:
         height, width = frame.shape[:2]
         fourcc = cv2.VideoWriter_fourcc(*'XVID')  
         test_filename = f"test_cam_{camera_idx}.avi"
-        out = cv2.VideoWriter(test_filename, fourcc, self.save_fps, (width, height))
+        out = cv2.VideoWriter(test_filename, fourcc, self.rec.save_fps, (width, height))
 
         start_time = time.time()
         while time.time() - start_time < estimation_duration_sec:
             frame = camera.capture_frame()
             if frame is not None:
                 out.write(frame)
-            time.sleep(1 / self.save_fps)
+            time.sleep(1 / self.rec.save_fps)
 
         out.release()
 
@@ -208,7 +206,7 @@ class CameraManager:
                         filename = time.strftime("%H_%M_%S.jpg")
                         save_file = os.path.join(save_subfolder, filename)
                         cv2.imwrite(save_file, frame)
-                time.sleep(self.save_interval)
+                time.sleep(self.rec.save_interval)
         # set the thread as a daemon thread to allow the program to shut down when the main program to exit without blocking
         t = threading.Thread(target=run_saving, daemon=True)
         t.start()

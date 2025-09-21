@@ -25,6 +25,7 @@ Details coming soon.
 - [Future Steps](#future-steps)
   - [1. Near Future](#1-near-future)
   - [2. Far Future](#2-far-future)
+  - [3. Research alternatives](#3-research-alternatives)
 
 <br>
 <br>
@@ -185,3 +186,8 @@ These are useful for logging, retries, and other miscellaneous, convenient utili
 ## 2. Far Future
 
 - Detect Objects and take a close-up of them
+
+
+## 3. Research alternatives
+
+As an alternative for Pinggy, we can try bore which is open-source and lightweight. 
