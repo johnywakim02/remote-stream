@@ -126,36 +126,7 @@ class CameraManager:
 
     def estimate_vid_storage_per_hour_cam(self, camera_idx: int, estimation_duration_sec = 5) -> None:
         camera = self.cameras[camera_idx]
-        frame = camera.capture_frame()
-        if frame is None:
-            self.logger.warning(f"Camera {camera_idx}: No frame captured. Skipping estimation.")
-            return 
-        
-        height, width = frame.shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')  
-        test_filename = f"test_cam_{camera_idx}.avi"
-        out = cv2.VideoWriter(test_filename, fourcc, self.rec.save_fps, (width, height))
-
-        start_time = time.time()
-        while time.time() - start_time < estimation_duration_sec:
-            frame = camera.capture_frame()
-            if frame is not None:
-                out.write(frame)
-            time.sleep(1 / self.rec.save_fps)
-
-        out.release()
-
-        # Get file size in MB
-        file_size_mb = os.path.getsize(test_filename) * BYTE_TO_MB
-
-        # Estimate per hour
-        estimated_hourly_mb = (file_size_mb / estimation_duration_sec) * HOUR_TO_SEC
-
-        # Clean up test file
-        os.remove(test_filename)
-
-        print(f"Camera {camera_idx}:")
-        print(f"  -> Estimated video size per hour: {estimated_hourly_mb:.2f} MB")
+        self.rec.estimate_storage_per_hour_cam(camera=camera)
 
     def estimate_vid_storage_per_hour(self, estimation_duration_sec = 5):
         for camera_idx in self.available_camera_indices:
