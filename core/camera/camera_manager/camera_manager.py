@@ -118,30 +118,7 @@ class CameraManager:
             camera_idx (int): index of the camera to access
         """
         camera = self.cameras[camera_idx]
-        frame = camera.capture_frame()
-        if frame is None:
-            self.logger.warning(f"Camera {camera_idx}: No frame captured. Skipping estimation.")
-            return 
-
-        # Save the image to disk
-        filename = "test_image.jpg"
-        cv2.imwrite(filename, frame)
-
-        # Get actual file size in bytes
-        file_size_mb = get_file_size_on_disk(filename)
-
-        # estimate the number of images per hour
-        images_per_hour = math.ceil(HOUR_TO_SEC / self.rec.save_interval)
-        # estimate hourly storage spent
-        mb_per_hour = file_size_mb * images_per_hour
-
-        print(f"Camera {camera_idx}:")
-        print(f"  -> Estimated image size: {file_size_mb:.2f} MB")
-        print(f"  -> Images per hour (@ every {self.rec.save_interval}s): {images_per_hour}")
-        print(f"  -> Estimated storage per hour: {mb_per_hour:.2f} MB\n")
-
-        # Clean up test file
-        os.remove(filename)
+        self.rec.estimate_storage_per_hour_cam(camera)
 
     def estimate_storage_per_hour(self) -> None:
         for camera_idx in self.available_camera_indices:
@@ -201,7 +178,7 @@ class CameraManager:
             while True:
                 for idx, camera in enumerate(self.cameras):
                     frame = camera.capture_frame()
-                    save_subfolder = os.path.join(self.save_folder, f"{date}/camera {idx}")
+                    save_subfolder = os.path.join(self.rec.save_folder, f"{date}/camera {idx}")
                     if frame is not None:
                         filename = time.strftime("%H_%M_%S.jpg")
                         save_file = os.path.join(save_subfolder, filename)
